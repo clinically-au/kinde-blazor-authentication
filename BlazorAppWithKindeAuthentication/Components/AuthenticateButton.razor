@@ -1,0 +1,43 @@
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+        <form action="Account/Logout" method="post">
+            <AntiforgeryToken />
+            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+            <button class="btn btn-primary" type="submit">Sign Out</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <NavLink href="Account/Login">
+            <button class="btn btn-primary">Sign In</button>
+        </NavLink>
+    </NotAuthorized>
+    <Authorizing>
+        <button class="btn btn-primary" disabled="disabled">Waiting...</button>
+    </Authorizing>
+</AuthorizeView>
+
+
+@code {
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

@@ -1,0 +1,190 @@
+﻿@page "/Account/ExternalLogin"
+@using System.Security.Claims
+@using BlazorAppWithKindeAuthentication.Data
+@using KindeAuthentication
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<ExternalLogin> Logger
+
+@code {
+    public const string LoginCallbackAction = "LoginCallback";
+
+    private ExternalLoginInfo _externalLoginInfo = default!;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    
+    [SupplyParameterFromQuery] private string? RemoteError { get; set; }
+
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery] private string? Action { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RemoteError is not null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
+        }
+
+        var info = await SignInManager.GetExternalLoginInfoAsync();
+        if (info is null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+        }
+
+        _externalLoginInfo = info;
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            if (Action == LoginCallbackAction)
+            {
+                await OnLoginCallbackAsync();
+                return;
+            }
+
+            // We should only reach this page via the login callback, so redirect back to
+            // the login page if we get here some other way.
+            RedirectManager.RedirectTo("Account/Login");
+        }
+    }
+
+    private Claim GetRequiredClaim(ClaimsPrincipal principal, string claimType)
+    {
+        var claim = principal.Claims.FirstOrDefault(x => x.Type == claimType);
+
+        if (claim is null)
+        {
+            Logger.LogCritical("Error: {Errors}", $"{claimType} claim is empty");
+            RedirectManager.RedirectTo("Error");
+        }
+
+        return claim;
+    }
+
+    private static Claim? GetOptionalClaim(ClaimsPrincipal principal, string claimType)
+    {
+        return principal.Claims.FirstOrDefault(x => x.Type == claimType);
+    }
+
+    private static string? GetOptionalClaimValue(ClaimsPrincipal principal, string claimType)
+    {
+        var claim = GetOptionalClaim(principal, claimType);
+        return claim?.Value;
+    }
+
+    private async Task OnLoginCallbackAsync()
+    {
+        // Sign in the user with this external login provider if the user already has a login.
+        var result = await SignInManager.ExternalLoginSignInAsync(
+            _externalLoginInfo.LoginProvider,
+            _externalLoginInfo.ProviderKey,
+            isPersistent: false,
+            bypassTwoFactor: true);
+
+        var principal = _externalLoginInfo.Principal;
+
+        if (result.IsLockedOut)
+        {
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        
+        if (result.Succeeded)
+        {
+            // This user exists in the local application
+            Logger.LogInformation("{Name} logged in", _externalLoginInfo.Principal.Identity?.Name);
+            
+            // I choose to synchronise the information from Kinde to the local Identity database
+            var email = GetRequiredClaim(principal, ClaimTypes.Email).Value;
+
+            var existingUser = await UserManager.FindByEmailAsync(email);
+            if (existingUser is null)
+            {
+                Logger.LogCritical("Error: {Errors}", $"User with email {email} not found");
+                RedirectManager.RedirectTo("Error");
+            }
+
+            existingUser.FirstName = GetOptionalClaimValue(principal, ClaimTypes.GivenName);
+            existingUser.LastName = GetOptionalClaimValue(principal, ClaimTypes.Surname);
+            existingUser.ProfileUrl = GetOptionalClaimValue(principal, KindeClaimTypes.ProfileUrl);
+
+          //  await UserManager.AddClaimsAsync(existingUser, principal.Claims);
+            
+            // Map roles from claims to UserManager
+            var roles = principal.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            foreach (var role in roles)
+            {
+                // First we need to check whether the role exists in the database
+                if (!await RoleManager.RoleExistsAsync(role))
+                {
+                    await RoleManager.CreateAsync(new IdentityRole(role));
+                }
+                await UserManager.AddToRoleAsync(existingUser, role);
+            }
+
+            await UserStore.UpdateAsync(existingUser, CancellationToken.None);
+
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        
+        // User does not exist in the local database, so create them
+        // Note Kinde has already validated the email address
+        var newUserEmail = GetRequiredClaim(principal, ClaimTypes.Email).Value;
+        var newUser = CreateUser();
+        await UserStore.SetUserNameAsync(newUser, newUserEmail, CancellationToken.None);
+
+        newUser.FirstName = GetOptionalClaimValue(principal, ClaimTypes.GivenName);
+        newUser.LastName = GetOptionalClaimValue(principal, ClaimTypes.Surname);
+        newUser.ProfileUrl = GetOptionalClaimValue(principal, KindeClaimTypes.ProfileUrl);
+        
+        newUser.Email = newUserEmail;
+        await GetEmailStore().SetEmailConfirmedAsync(newUser, true, CancellationToken.None);
+
+        var createResult = await UserManager.CreateAsync(newUser);
+        if (createResult.Succeeded)
+        {
+            var addLoginResult = await UserManager.AddLoginAsync(newUser, _externalLoginInfo);
+            if (addLoginResult.Succeeded)
+            {
+                await SignInManager.SignInAsync(newUser, isPersistent: false, _externalLoginInfo.LoginProvider);
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+
+            Logger.LogCritical("Error: {Errors}", string.Join(",", addLoginResult.Errors.Select(error => error.Description)));
+            RedirectManager.RedirectTo("Error");
+        }
+        else
+        {
+            Logger.LogCritical("Error: {Errors}", string.Join(",", createResult.Errors.Select(error => error.Description)));
+            RedirectManager.RedirectTo("Error");
+        }
+    }
+    
+    private ApplicationUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                                                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("Requires a user store with email support.");
+        }
+
+        return (IUserEmailStore<ApplicationUser>)UserStore;
+    }
+
+}

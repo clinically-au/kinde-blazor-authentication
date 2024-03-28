@@ -1,0 +1,36 @@
+﻿@page "/user-info"
+@using BlazorAppWithKindeAuthentication.Data
+@using Microsoft.AspNetCore.Identity
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>User Information</PageTitle>
+
+<h1>User Information</h1>
+
+<p role="status">Shows information about the currently logged in user</p>
+
+<p>User Id: @User?.Id</p>
+<p>Username: @User?.UserName</p>
+<p>Email: @User?.Email</p>
+<p>First name: @User?.FirstName</p>
+<p>Last name: @User?.LastName</p>
+<p>Profile Url: @User?.ProfileUrl</p>
+<p>Roles: @string.Join(", ", _roles ?? [])</p>
+
+@code{
+
+    private ApplicationUser? User { get; set; } 
+    private List<string>? _roles; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claimsPrincipal = authState.User;
+        User = await UserManager.GetUserAsync(claimsPrincipal).ConfigureAwait(false);
+        _roles = (List<string>)await UserManager.GetRolesAsync(User).ConfigureAwait(false);
+    }
+
+}
