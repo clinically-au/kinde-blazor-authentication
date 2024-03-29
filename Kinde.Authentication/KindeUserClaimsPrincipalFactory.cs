@@ -48,11 +48,26 @@ public class AdditionalUserClaimsPrincipalFactory(
 
         var authClaimsList = authClaims.ToList();
         
-        claims.Add(authClaimsList.First(x => x.Type == KindeClaimTypes.OrganizationCode));
-        claims.AddRange(authClaimsList.Where(c => c.Type == KindeClaimTypes.Organizations));
-        claims.AddRange(authClaimsList.Where(c => c.Type == KindeClaimTypes.Roles));
-        claims.AddRange(authClaimsList.Where(c => c.Type == KindeClaimTypes.Permissions));
-        claims.AddRange(authClaimsList.Where(c => c.Type == ClaimTypes.Role));
+        if (authClaimsList.Any(c => c.Type == KindeClaimTypes.OrganizationCode))
+            claims.Add(authClaimsList.First(x => x.Type == KindeClaimTypes.OrganizationCode));
+        
+        if (authClaimsList.Any(c => c.Type == KindeClaimTypes.Organizations))
+            claims.AddRange(authClaimsList.Where(c => c.Type == KindeClaimTypes.Organizations));
+        
+        if (authClaimsList.Any(c => c.Type == KindeClaimTypes.Roles))
+            claims.AddRange(authClaimsList.Where(c => c.Type == KindeClaimTypes.Roles));
+        
+        if (authClaimsList.Any(c => c.Type == KindeClaimTypes.Permissions))
+            claims.AddRange(authClaimsList.Where(c => c.Type == KindeClaimTypes.Permissions));
+        
+        if (authClaimsList.Any(c => c.Type == ClaimTypes.Role))
+            claims.AddRange(authClaimsList.Where(c => c.Type == ClaimTypes.Role));
+        
+        if (authClaimsList.Any(c => c.Type == ClaimTypes.Email))
+            claims.Add(new Claim(ClaimTypes.Email, authClaimsList.First(x => x.Type == ClaimTypes.Email).Value));
+        
+        if (authClaimsList.Any(c => c.Type == KindeClaimTypes.DisplayName))
+            claims.Add(new Claim(ClaimTypes.Name, authClaimsList.First(x => x.Type == KindeClaimTypes.DisplayName).Value));
 
         identity.AddClaims(claims);
 

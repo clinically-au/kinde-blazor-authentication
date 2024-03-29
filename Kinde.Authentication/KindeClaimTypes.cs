@@ -10,4 +10,5 @@ public static class KindeClaimTypes
     public const string Organizations = "organizations";
     public const string Permissions = "permissions";
     public const string Roles = "roles";
+    public const string DisplayName = "name";
 }
