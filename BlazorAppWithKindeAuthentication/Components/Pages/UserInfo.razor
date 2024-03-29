@@ -1,10 +1,9 @@
 ﻿@page "/user-info"
-@using BlazorAppWithKindeAuthentication.Data
-@using Microsoft.AspNetCore.Identity
+@using KindeAuthentication
 @rendermode InteractiveServer
-@attribute [Authorize]
-@inject UserManager<ApplicationUser> UserManager
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@* @attribute [Authorize(Roles="MyKindeRoleName")] *@
+@* @attribute [Authorize(Policy=Permissions.MyPermissionName)]  *@
+@inject BlazorServerUserAccessor UserAccessor
 
 <PageTitle>User Information</PageTitle>
 
@@ -15,22 +14,16 @@
 <p>User Id: @User?.Id</p>
 <p>Username: @User?.UserName</p>
 <p>Email: @User?.Email</p>
-<p>First name: @User?.FirstName</p>
-<p>Last name: @User?.LastName</p>
-<p>Profile Url: @User?.ProfileUrl</p>
-<p>Roles: @string.Join(", ", _roles ?? [])</p>
+<p>First name: @User?.GivenName</p>
+<p>Last name: @User?.FamilyName</p>
+<p>Picture: @User?.Picture</p>
 
 @code{
 
-    private ApplicationUser? User { get; set; } 
-    private List<string>? _roles; 
+    private KindeUser? User { get; set; } 
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var claimsPrincipal = authState.User;
-        User = await UserManager.GetUserAsync(claimsPrincipal).ConfigureAwait(false);
-        _roles = (List<string>)await UserManager.GetRolesAsync(User).ConfigureAwait(false);
+        User = await UserAccessor.GetCurrentUserAsync();
     }
-
 }

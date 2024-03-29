@@ -1,10 +1,8 @@
+using BlazorAppWithKindeAuthentication;
 using BlazorAppWithKindeAuthentication.Components;
 using BlazorAppWithKindeAuthentication.Components.Account;
-using BlazorAppWithKindeAuthentication.Data;
 using KindeAuthentication;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,35 +11,32 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-// I know I should learn how to do the options the .NET way; maybe later!
-builder.Services.AddKindeAuthentication(new KindeAuthenticationOptions
+// Add the Kinde Authentication services that use ASP.NET Identity
+builder.Services.AddKindeAuthentication(opt =>
 {
-    Authority = builder.Configuration["Kinde:Authority"] ??
-                throw new ArgumentNullException($"Kinde:Authority", "Kinde:Authority is required in the app settings"),
-    ClientId = builder.Configuration["Kinde:ClientId"] ??
-               throw new ArgumentNullException($"Kinde:ClientId", "Kinde:ClientId is required in the app settings"),
-    ClientSecret = builder.Configuration["Kinde:ClientSecret"] ?? throw new ArgumentNullException($"Kinde:ClientSecret",
-        "Kinde:ClientSecret is required in the app settings"),
-    SignedOutRedirectUri = builder.Configuration["Kinde:SignedOutRedirectUri"] ?? throw new ArgumentNullException(
-        $"Kinde:SignedOutRedirectUri",
-        "Kinde:SignedOutRedirectUri is required in the app settings"),
+    opt.Authority = builder.Configuration["Kinde:Authority"] ??
+                    throw new ArgumentNullException($"Kinde:Authority",
+                        "Kinde:Authority is required in the app settings");
+    opt.ClientId = builder.Configuration["Kinde:ClientId"] ??
+                   throw new ArgumentNullException($"Kinde:ClientId", "Kinde:ClientId is required in the app settings");
+    opt.ClientSecret = builder.Configuration["Kinde:ClientSecret"] ?? throw new ArgumentNullException(
+        $"Kinde:ClientSecret",
+        "Kinde:ClientSecret is required in the app settings");
+    opt.SignedOutRedirectUri = builder.Configuration["Kinde:SignedOutRedirectUri"] ?? throw new ArgumentNullException(
+        $"Kinde:SignedOutRedirectUri", "Kinde:SignedOutRedirectUri is required in the app settings");
+    opt.ManagementApiClientId = builder.Configuration["Kinde:ManagementApiClientId"] ?? throw new ArgumentNullException(
+        $"Kinde:ManagementApiClientId", "Kinde:ManagementApiClientId is required in the app settings");
+    opt.ManagementApiClientSecret = builder.Configuration["Kinde:ManagementApiClientSecret"] ??
+                                    throw new ArgumentNullException($"Kinde:ManagementApiClientSecret",
+                                        "Kinde:ManagementApiClientSecret is required in the app settings");
+    opt.UseJwkTokenValidation = true;
+    opt.UseMemoryCacheTicketStore = false;
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager();
+builder.Services
+    .AddAuthorizationBuilder()
+    .AddKindePermissionPolicies<Permissions>();
 
 var app = builder.Build();
 
@@ -64,6 +59,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-app.MapAdditionalIdentityEndpoints();
+// Add the Kinde Identity endpoints
+app.MapKindeIdentityEndpoints();
 
 app.Run();

@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\KindeAuthentication\KindeAuthentication.csproj" />
+      <ProjectReference Include="..\Kinde.Authentication\Kinde.Authentication.csproj" />
     </ItemGroup>
 
     <ItemGroup>

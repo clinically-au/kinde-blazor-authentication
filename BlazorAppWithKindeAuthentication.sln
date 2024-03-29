@@ -2,7 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorAppWithKindeAuthentication", "BlazorAppWithKindeAuthentication\BlazorAppWithKindeAuthentication.csproj", "{9C9B8E46-862C-4AD2-A899-58A33F45610E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KindeAuthentication", "KindeAuthentication\KindeAuthentication.csproj", "{B8B41398-4AC4-4DC5-B511-3F862500B9BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kinde.Authentication", "Kinde.Authentication\Kinde.Authentication.csproj", "{B8B41398-4AC4-4DC5-B511-3F862500B9BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kinde.ManagementApi", "Kinde.ManagementApi\src\Kinde.ManagementApi\Kinde.ManagementApi.csproj", "{9C689635-4D2E-4325-A001-E37ADF2A3C28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +20,9 @@ Global
 		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C689635-4D2E-4325-A001-E37ADF2A3C28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C689635-4D2E-4325-A001-E37ADF2A3C28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C689635-4D2E-4325-A001-E37ADF2A3C28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C689635-4D2E-4325-A001-E37ADF2A3C28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
