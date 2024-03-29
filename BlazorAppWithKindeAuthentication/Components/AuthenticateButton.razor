@@ -2,14 +2,14 @@
 
 <AuthorizeView>
     <Authorized>
-        <form action="Auth/Logout" method="post">
+        <form action="Account/Logout" method="post">
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@currentUrl" />
             <button class="btn btn-primary" type="submit">Sign Out</button>
         </form>
     </Authorized>
     <NotAuthorized>
-        <NavLink href="Auth/Login">
+        <NavLink href="Account/Login">
             <button class="btn btn-primary">Sign In</button>
         </NavLink>
     </NotAuthorized>

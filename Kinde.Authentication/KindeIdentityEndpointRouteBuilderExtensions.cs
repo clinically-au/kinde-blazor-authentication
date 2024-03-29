@@ -17,7 +17,7 @@ public static class KindeIdentityEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        var accountGroup = endpoints.MapGroup("/Auth");
+        var accountGroup = endpoints.MapGroup("/Account");
 
         accountGroup.MapGet("/Login", (
             HttpContext context,
@@ -31,7 +31,7 @@ public static class KindeIdentityEndpointRouteBuilderExtensions
 
             var redirectUrl = UriHelper.BuildRelative(
                 context.Request.PathBase,
-                "/Auth/LoginCallback",
+                "/Account/LoginCallback",
                 QueryString.Create(query));
 
             var properties = signInManager.ConfigureExternalAuthenticationProperties("OpenIdConnect", redirectUrl);
