@@ -1,5 +1,4 @@
 using System.Reflection;
-using Kinde.ManagementApi.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 
