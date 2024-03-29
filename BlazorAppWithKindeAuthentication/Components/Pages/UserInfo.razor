@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @* @attribute [Authorize(Roles="MyKindeRoleName")] *@
 @* @attribute [Authorize(Policy=Permissions.MyPermissionName)]  *@
+@attribute [Authorize]
 @inject BlazorServerUserAccessor UserAccessor
 
 <PageTitle>User Information</PageTitle>

@@ -10,6 +10,7 @@
         <Authors>WojtJ</Authors>
         <PackageProjectUrl>https://github.com/wojtj/BlazorAppWithKindeAuthentication</PackageProjectUrl>
         <AssemblyName>WojtJ.Kinde.IdentityAuthentication</AssemblyName>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
