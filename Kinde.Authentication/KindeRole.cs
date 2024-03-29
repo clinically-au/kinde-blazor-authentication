@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Kinde.ManagementApi.Model;
 
 namespace KindeAuthentication;

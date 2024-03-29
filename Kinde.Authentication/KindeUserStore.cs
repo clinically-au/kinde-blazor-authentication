@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Kinde.ManagementApi.Api;
 using Kinde.ManagementApi.Model;
 using Microsoft.AspNetCore.Http;

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace KindeAuthentication;
 
-internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
+public sealed class IdentityRedirectManager(NavigationManager navigationManager)
 {
     public const string StatusCookieName = "Identity.StatusMessage";
 

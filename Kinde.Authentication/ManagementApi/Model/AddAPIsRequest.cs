@@ -36,7 +36,7 @@ namespace Kinde.ManagementApi.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="AddAPIsRequest" /> class.
         /// </summary>
-        [JsonConstructorAttribute]
+        [Newtonsoft.Json.JsonConstructor]
         protected AddAPIsRequest() { }
         /// <summary>
         /// Initializes a new instance of the <see cref="AddAPIsRequest" /> class.
