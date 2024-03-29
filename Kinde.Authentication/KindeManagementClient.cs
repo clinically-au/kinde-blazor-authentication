@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 namespace KindeAuthentication;
 
 public class KindeManagementClient(
-    ILogger<KindeManagementClient> logger,
     IHttpClientFactory httpClientFactory,
     KindeManagementApiAuthenticationHelper authenticationHelper,
     IOptions<KindeAuthenticationOptions> options
@@ -53,14 +52,104 @@ public class KindeManagementClient(
         return _clientHandler;
     }
 
-    public async Task<OrganizationsApi> GetOrganizationClient() => 
-        new(GetClient(), await GetConfiguration().ConfigureAwait(false), GetClientHandler());
-    public async Task<UsersApi> GetUserClient() => 
-        new(GetClient(), await GetConfiguration().ConfigureAwait(false), GetClientHandler());
-    public async Task<RolesApi> GetRolesClient() => 
-        new(GetClient(), await GetConfiguration().ConfigureAwait(false), GetClientHandler());  
-    public async Task<PermissionsApi> GetPermissionsClient() => 
-        new(GetClient(), await GetConfiguration().ConfigureAwait(false), GetClientHandler());
+    private OrganizationsApi? _organizationsApi;
+    public OrganizationsApi Organizations
+    {
+        get
+        {
+            if (_organizationsApi is not null) return _organizationsApi;
+            _organizationsApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _organizationsApi;
+        }
+    }
+
+    private UsersApi? _usersApi;
+    public UsersApi Users
+    {
+        get
+        {
+            if (_usersApi is not null) return _usersApi;
+            _usersApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _usersApi;
+        }
+    }
+
+    private RolesApi? _rolesApi;
+    public RolesApi Roles
+    {
+        get
+        {
+            if (_rolesApi is not null) return _rolesApi;
+            _rolesApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _rolesApi;
+        }
+    }
+    
+    private PermissionsApi? _permissionsApi;
+    public PermissionsApi Permissions
+    {
+        get
+        {
+            if (_permissionsApi is not null) return _permissionsApi;
+            _permissionsApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _permissionsApi;
+        }
+    }
+    
+    private FeatureFlagsApi? _featureFlagsApi;
+    public FeatureFlagsApi FeatureFlags
+    {
+        get
+        {
+            if (_featureFlagsApi is not null) return _featureFlagsApi;
+            _featureFlagsApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _featureFlagsApi;
+        }
+    }
+    
+    private PropertiesApi? _propertiesApi;
+    public PropertiesApi Properties
+    {
+        get
+        {
+            if (_propertiesApi is not null) return _propertiesApi;
+            _propertiesApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _propertiesApi;
+        }
+    }
+
+    private PropertyCategoriesApi? _propertyCategoriesApi;
+    public PropertyCategoriesApi PropertyCategories
+    {
+        get
+        {
+            if (_propertyCategoriesApi is not null) return _propertyCategoriesApi;
+            _propertyCategoriesApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _propertyCategoriesApi;
+        }
+    }
+    
+    private IndustriesApi? _industriesApi;
+    public IndustriesApi Industries
+    {
+        get
+        {
+            if (_industriesApi is not null) return _industriesApi;
+            _industriesApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _industriesApi;
+        }
+    }
+
+    private SubscribersApi? _subscribersApi;
+    public SubscribersApi Subscribers
+    {
+        get
+        {
+            if (_subscribersApi is not null) return _subscribersApi;
+            _subscribersApi = new(GetClient(), GetConfiguration().Result, GetClientHandler());
+            return _subscribersApi;
+        }
+    }
     
     public void Dispose()
     {

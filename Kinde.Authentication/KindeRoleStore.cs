@@ -6,10 +6,6 @@ namespace KindeAuthentication;
 
 public class KindeRoleStore(KindeManagementClient client) : IRoleStore<KindeRole>
 {
-    private OrganizationsApi Organizations { get; } = client.GetOrganizationClient().Result;
-    private UsersApi Users { get; } = client.GetUserClient().Result;
-    private RolesApi Roles { get; } = client.GetRolesClient().Result;
-
     private bool _isDisposed = false;
 
     public void Dispose() => _isDisposed = true;
@@ -25,7 +21,7 @@ public class KindeRoleStore(KindeManagementClient client) : IRoleStore<KindeRole
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(role, nameof(role));
         ArgumentNullException.ThrowIfNull(role.Name, nameof(role.Name));
-        var result = await Roles.CreateRoleAsync(new CreateRoleRequest(role.Name, role.Description!, role.Key!), cancellationToken);
+        var result = await client.Roles.CreateRoleAsync(new CreateRoleRequest(role.Name, role.Description!, role.Key!), cancellationToken);
         return result.Code == "200" ? IdentityResult.Success : IdentityResult.Failed(new []{new IdentityError{Code = result.Code, Description = result.Message}});
     }
 
@@ -35,7 +31,7 @@ public class KindeRoleStore(KindeManagementClient client) : IRoleStore<KindeRole
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(role, nameof(role));
         ArgumentNullException.ThrowIfNull(role.Name, nameof(role.Name));
-        var result = await Roles.UpdateRolesAsync(role.Id, new UpdateRolesRequest(role.Name, role.Description!, role.Key!), cancellationToken);
+        var result = await client.Roles.UpdateRolesAsync(role.Id, new UpdateRolesRequest(role.Name, role.Description!, role.Key!), cancellationToken);
         return result.Code == "200" ? IdentityResult.Success : IdentityResult.Failed(new []{new IdentityError{Code = result.Code, Description = result.Message}});
     }
 
@@ -45,7 +41,7 @@ public class KindeRoleStore(KindeManagementClient client) : IRoleStore<KindeRole
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(role, nameof(role));
         ArgumentNullException.ThrowIfNull(role.Id, nameof(role.Id));
-        var result = await Roles.DeleteRoleAsync(role.Id, cancellationToken);
+        var result = await client.Roles.DeleteRoleAsync(role.Id, cancellationToken);
         return result.Code == "200" ? IdentityResult.Success : IdentityResult.Failed(new []{new IdentityError{Code = result.Code, Description = result.Message}});
     }
 
@@ -90,7 +86,7 @@ public class KindeRoleStore(KindeManagementClient client) : IRoleStore<KindeRole
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
         
-        var roles = await Roles.GetRolesAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        var roles = await client.Roles.GetRolesAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         var role = roles.Roles.FirstOrDefault(x => x.Id == roleId);
         return role is null ? null : KindeRole.FromRoles(role);
     }
@@ -99,7 +95,7 @@ public class KindeRoleStore(KindeManagementClient client) : IRoleStore<KindeRole
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
-        var roles = await Roles.GetRolesAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        var roles = await client.Roles.GetRolesAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         var role = roles.Roles.FirstOrDefault<Roles>(x => string.Compare(x.Name,normalizedRoleName, StringComparison.OrdinalIgnoreCase) == 0);
         return role is null ? null : KindeRole.FromRoles(role);
     }

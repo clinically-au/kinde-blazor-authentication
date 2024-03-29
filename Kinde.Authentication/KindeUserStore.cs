@@ -8,10 +8,6 @@ namespace KindeAuthentication;
 
 public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor httpContextAccessor) : IUserLoginStore<KindeUser>, IUserRoleStore<KindeUser>, IUserClaimStore<KindeUser>
 {
-    private OrganizationsApi Organizations { get; } = client.GetOrganizationClient().Result;
-    public UsersApi Users { get; } = client.GetUserClient().Result;
-    private RolesApi Roles { get; } = client.GetRolesClient().Result;
-    
     private bool _isDisposed = false;
     
     public void Dispose() => _isDisposed = true;
@@ -64,12 +60,12 @@ public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor h
         ArgumentNullException.ThrowIfNull(user, nameof(user));
         ArgumentException.ThrowIfNullOrEmpty(user.Email, nameof(user.Email));
 
-        var users = await Users.GetUsersAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        var users = await client.Users.GetUsersAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         var existingUser = users?.Users?.FirstOrDefault(x => x.Email == user.Email)?.Id;
 
         if (string.IsNullOrEmpty(existingUser))
         {
-            var result = await Users.CreateUserAsync(
+            var result = await client.Users.CreateUserAsync(
                 new CreateUserRequest(
                     new CreateUserRequestProfile(user.GivenName ?? string.Empty, user.FamilyName ?? string.Empty), null!,
                     [
@@ -86,7 +82,7 @@ public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor h
 
     private async Task<bool> AddUserToOrganization(string userId, string orgCode, CancellationToken cancellationToken)
     {
-        var response = await Organizations.AddOrganizationUsersAsync(
+        var response = await client.Organizations.AddOrganizationUsersAsync(
                 orgCode,
                 new AddOrganizationUsersRequest([new AddOrganizationUsersRequestUsersInner(userId)]), cancellationToken)
             .ConfigureAwait(false);
@@ -100,7 +96,7 @@ public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor h
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(user, nameof(user));
         ArgumentException.ThrowIfNullOrEmpty(user.Id, nameof(user.Id));
-        await Users.UpdateUserAsync(user.Id,
+        await client.Users.UpdateUserAsync(user.Id,
                 new UpdateUserRequest(user.GivenName, user.FamilyName), cancellationToken)
             .ConfigureAwait(false);
        return IdentityResult.Success;
@@ -120,7 +116,7 @@ public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor h
             throw new Exception("User is a member of one or more organizations and cannot be deleted.");
         }
 
-        await Users.DeleteUserAsync(user.Id, cancellationToken: cancellationToken, isDeleteProfile:true).ConfigureAwait(false);
+        await client.Users.DeleteUserAsync(user.Id, cancellationToken: cancellationToken, isDeleteProfile:true).ConfigureAwait(false);
         return IdentityResult.Success;
     }
 
@@ -128,7 +124,7 @@ public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor h
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
-        var result = await Users.GetUsersAsync(userId: userId, expand: "organizations", cancellationToken: cancellationToken).ConfigureAwait(false);
+        var result = await client.Users.GetUsersAsync(userId: userId, expand: "organizations", cancellationToken: cancellationToken).ConfigureAwait(false);
         var first = result.Users.FirstOrDefault();
         return first is null ? null : KindeUser.FromUserResponse(first);
     }
@@ -137,7 +133,7 @@ public class KindeUserStore(KindeManagementClient client, IHttpContextAccessor h
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
-        var result = await Users.GetUsersAsync(email: normalizedUserName, expand:"organizations", cancellationToken: cancellationToken).ConfigureAwait(false);
+        var result = await client.Users.GetUsersAsync(email: normalizedUserName, expand:"organizations", cancellationToken: cancellationToken).ConfigureAwait(false);
         var first = result.Users.FirstOrDefault();
         return first is null ? null : KindeUser.FromUserResponse(first);
     }
