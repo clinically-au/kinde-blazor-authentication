@@ -67,3 +67,4 @@ I've only just recently worked out how to tie all this together, so some bits ma
 
 ### To Do List:
 - Feature flags not currently implemented (but will work the same way as Permissions)
+- Nuget package
