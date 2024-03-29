@@ -42,4 +42,16 @@ public class KindeUser : IdentityUser
             Identities = user.Identities?.Select(x => new Dictionary<string, string> { { x.Type.ToString(), x.Identity } }).ToList()
         };
     }
+
+    internal static KindeUser FromOrganizationUser(OrganizationUser user)
+    {
+        return new KindeUser()
+        {
+            Id = user.Id,
+            UserName = user.Email,
+            Email = user.Email,
+            GivenName = user.FirstName,
+            FamilyName = user.LastName
+        };
+    }
 }
