@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorAppWithKindeAuthentic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kinde.Authentication", "Kinde.Authentication\Kinde.Authentication.csproj", "{B8B41398-4AC4-4DC5-B511-3F862500B9BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kinde.ManagementApi", "Kinde.ManagementApi\src\Kinde.ManagementApi\Kinde.ManagementApi.csproj", "{9C689635-4D2E-4325-A001-E37ADF2A3C28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kinde.ManagementApi", "Kinde.ManagementApi\Kinde.ManagementApi.csproj", "{9C689635-4D2E-4325-A001-E37ADF2A3C28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
