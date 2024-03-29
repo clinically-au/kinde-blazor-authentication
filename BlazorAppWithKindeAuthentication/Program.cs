@@ -13,23 +13,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 
 // Add the Kinde Authentication services that use ASP.NET Identity
-builder.Services.AddKindeAuthentication(opt =>
+builder.Services.AddKindeAuthentication(builder.Configuration, opt =>
 {
-    opt.Authority = builder.Configuration["Kinde:Authority"] ??
-                    throw new ArgumentNullException($"Kinde:Authority",
-                        "Kinde:Authority is required in the app settings");
-    opt.ClientId = builder.Configuration["Kinde:ClientId"] ??
-                   throw new ArgumentNullException($"Kinde:ClientId", "Kinde:ClientId is required in the app settings");
-    opt.ClientSecret = builder.Configuration["Kinde:ClientSecret"] ?? throw new ArgumentNullException(
-        $"Kinde:ClientSecret",
-        "Kinde:ClientSecret is required in the app settings");
-    opt.SignedOutRedirectUri = builder.Configuration["Kinde:SignedOutRedirectUri"] ?? throw new ArgumentNullException(
-        $"Kinde:SignedOutRedirectUri", "Kinde:SignedOutRedirectUri is required in the app settings");
-    opt.ManagementApiClientId = builder.Configuration["Kinde:ManagementApiClientId"] ?? throw new ArgumentNullException(
-        $"Kinde:ManagementApiClientId", "Kinde:ManagementApiClientId is required in the app settings");
-    opt.ManagementApiClientSecret = builder.Configuration["Kinde:ManagementApiClientSecret"] ??
-                                    throw new ArgumentNullException($"Kinde:ManagementApiClientSecret",
-                                        "Kinde:ManagementApiClientSecret is required in the app settings");
     opt.UseJwkTokenValidation = true;
     opt.UseMemoryCacheTicketStore = false;
 });

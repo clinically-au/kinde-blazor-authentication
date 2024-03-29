@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -31,15 +32,18 @@ public class KindeAuthenticationOptions()
 public static class KindeAuthenticationBuilder
 {
     public static AuthenticationBuilder AddKindeAuthentication(this IServiceCollection services,
-        Action<KindeAuthenticationOptions> kindeAuthenticationOptions)
-    {
-        return AddKindeAuthenticationInternal(services, kindeAuthenticationOptions);
-    }
-    private static AuthenticationBuilder AddKindeAuthenticationInternal(this IServiceCollection services, Action<KindeAuthenticationOptions> kindeAuthenticationOptions)
+        IConfiguration configuration, Action<KindeAuthenticationOptions> kindeAuthenticationOptions)
     {
         services.Configure(kindeAuthenticationOptions);
         var configOptions = new KindeAuthenticationOptions();
         kindeAuthenticationOptions(configOptions);
+
+        if (string.IsNullOrEmpty(configOptions.Authority)) configOptions.Authority = configuration["Kinde:Authority"];
+        if (string.IsNullOrEmpty(configOptions.ClientId)) configOptions.ClientId = configuration["Kinde:ClientId"];
+        if (string.IsNullOrEmpty(configOptions.ClientSecret)) configOptions.ClientSecret = configuration["Kinde:ClientSecret"];
+        if (string.IsNullOrEmpty(configOptions.SignedOutRedirectUri)) configOptions.SignedOutRedirectUri = configuration["Kinde:SignedOutRedirectUri"];
+        if (string.IsNullOrEmpty(configOptions.ManagementApiClientId)) configOptions.ManagementApiClientId = configuration["Kinde:ManagementApiClientId"];
+        if (string.IsNullOrEmpty(configOptions.ManagementApiClientSecret)) configOptions.ManagementApiClientSecret = configuration["Kinde:ManagementApiClientSecret"];
 
         ArgumentException.ThrowIfNullOrEmpty(configOptions.Authority, "Kinde:Authority");
         ArgumentException.ThrowIfNullOrEmpty(configOptions.ClientId, "Kinde:ClientId");
@@ -70,7 +74,7 @@ public static class KindeAuthenticationBuilder
             options.ClientSecret = configOptions.ClientSecret;
             options.SignedOutRedirectUri = configOptions.SignedOutRedirectUri;
             options.ResponseType = OpenIdConnectResponseType.Code;
-            options.MapInboundClaims = true;
+            options.MapInboundClaims = false;
             options.Scope.Add(OpenIdConnectScope.OpenIdProfile);
             options.Scope.Add(OpenIdConnectScope.Email);
             options.Scope.Add("offline"); 
