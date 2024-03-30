@@ -2,7 +2,7 @@
 This is a quick sample of integrating Kinde Authentication with Blazor apps using AspNet core identity
 
 Either fork the repo and use it, or add the following NuGet package:
-```WojtJ.KindeAuthentication```
+```WojtJ.Kinde.IdentityAuthentication```
 
 It needs lots of improvements, but is a reasonable starting point.
 
