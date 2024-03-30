@@ -105,10 +105,11 @@ public static class KindeAuthenticationBuilder
                         var jsonToken = handler.ReadJwtToken(ctx.TokenEndpointResponse.AccessToken);
             
                         var newClaims = new List<Claim>();
-                        
+
                         newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Permissions));
                         newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Roles));
                         newClaims.Add(new Claim(KindeClaimTypes.OrganizationCode, jsonToken.Claims.FirstOrDefault(x => x.Type == KindeClaimTypes.OrganizationCode)?.Value ?? string.Empty));
+                        newClaims.Add(new Claim(ClaimTypes.Email, jsonToken.Claims.FirstOrDefault(x => x.Type == KindeClaimTypes.Email)?.Value ?? string.Empty));
 
                         // also need to transform the role claims so the AuthorizeAttribute can find them
                         newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Roles)
