@@ -1,6 +1,9 @@
 # Integrating Kinde Auth with .NET8 Blazor Server Apps
 This is a quick sample of integrating Kinde Authentication with Blazor apps using AspNet core identity
 
+Either fork the repo and use it, or add the following NuGet package:
+```WojtJ.KindeAuthentication```
+
 It needs lots of improvements, but is a reasonable starting point.
 
 The following needs to be in your ```appSettings.json```:
