@@ -22,14 +22,8 @@ You then need the following in your Program.cs (I will soon add something so you
 ```csharp 
 builder.Services.AddKindeAuthentication(opt =>
 {
-    opt.Authority = builder.Configuration["Kinde:Authority"] ;
-    opt.ClientId = builder.Configuration["Kinde:ClientId"];
-    opt.ClientSecret = builder.Configuration["Kinde:ClientSecret"];
-    opt.SignedOutRedirectUri = builder.Configuration["Kinde:SignedOutRedirectUri"];
-    opt.ManagementApiClientId = builder.Configuration["Kinde:ManagementApiClientId"];
-    opt.ManagementApiClientSecret = builder.Configuration["Kinde:ManagementApiClientSecret"];
-    opt.UseJwkTokenValidation = true;
-    opt.UseMemoryCacheTicketStore = false;
+    opt.UseJwkTokenValidation = true; // default to true
+    opt.UseMemoryCacheTicketStore = false; // default to false
 }); 
 ```
 ## Roles
