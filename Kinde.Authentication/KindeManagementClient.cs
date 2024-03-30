@@ -1,6 +1,5 @@
 using Kinde.ManagementApi.Api;
 using Kinde.ManagementApi.Client;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace KindeAuthentication;
@@ -8,11 +7,10 @@ namespace KindeAuthentication;
 public class KindeManagementClient(
     IHttpClientFactory httpClientFactory,
     KindeManagementApiAuthenticationHelper authenticationHelper,
-    IOptions<KindeAuthenticationOptions> options
+    KindeAuthenticationOptions options
     )
     : IDisposable
 {
-    private readonly string? _authority = options.Value.Authority;
     private Configuration? _clientConfiguration;
     private string? _authToken;
     private HttpClient? _client;
@@ -21,14 +19,14 @@ public class KindeManagementClient(
     private async Task<Configuration> GetConfiguration()
     {
         if (_clientConfiguration is not null) return _clientConfiguration;
-        ArgumentException.ThrowIfNullOrEmpty(_authority, nameof(_authority));
+        ArgumentException.ThrowIfNullOrEmpty(options.Authority, nameof(options.Authority));
         
         if (string.IsNullOrEmpty(_authToken)) _authToken = await authenticationHelper.GetAuthTokenAsync().ConfigureAwait(false);
         ArgumentException.ThrowIfNullOrEmpty(_authToken, nameof(_authToken));
         
         _clientConfiguration = new Configuration
         {
-            BasePath = _authority,
+            BasePath = options.Authority,
             AccessToken = _authToken
         };
         

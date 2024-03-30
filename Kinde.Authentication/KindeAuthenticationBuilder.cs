@@ -37,7 +37,7 @@ public static class KindeAuthenticationBuilder
         services.Configure(kindeAuthenticationOptions);
         var configOptions = new KindeAuthenticationOptions();
         kindeAuthenticationOptions(configOptions);
-
+        
         if (string.IsNullOrEmpty(configOptions.Authority)) configOptions.Authority = configuration["Kinde:Authority"];
         if (string.IsNullOrEmpty(configOptions.ClientId)) configOptions.ClientId = configuration["Kinde:ClientId"];
         if (string.IsNullOrEmpty(configOptions.ClientSecret)) configOptions.ClientSecret = configuration["Kinde:ClientSecret"];
@@ -155,8 +155,10 @@ public static class KindeAuthenticationBuilder
 
         services.AddScoped<IUserClaimsPrincipalFactory<KindeUser>, AdditionalUserClaimsPrincipalFactory>();
 
-        services.AddScoped<KindeManagementClient>();
-        services.AddSingleton<KindeManagementApiAuthenticationHelper>();
+        services.AddScoped<KindeManagementClient>(x => ActivatorUtilities
+            .CreateInstance<KindeManagementClient>(x, configOptions));
+        services.AddSingleton<KindeManagementApiAuthenticationHelper>(x => ActivatorUtilities
+            .CreateInstance<KindeManagementApiAuthenticationHelper>(x, configOptions));
 
         services.AddTransient<BlazorServerUserAccessor>();
         
