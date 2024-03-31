@@ -14,8 +14,7 @@ The following needs to be in your ```appSettings.json```:
     "ClientSecret": "<From Kinde>",
     "ManagementApiClientId": "<From Kinde>",
     "ManagementApiClientSecret": "<From Kinde>",
-    "SignedOutRedirectUri": "https://localhost:5001/signout-callback-oidc",
-    "JwtAudience": "<From Kinde - Audience for API, if using JWT Bearer Auth in addition to Identity>",
+    "SignedOutRedirectUri": "https://localhost:5001/signout-callback-oidc"
   },
   "AppConfig": {
     "BaseUrl": "https://localhost:5001"
@@ -26,7 +25,7 @@ You then need the following in your Program.cs (I will soon add something so you
 ```csharp 
 builder.Services.AddKindeAuthentication(opt =>
 {
-    opt.UseJwkTokenValidation = false; // default to false
+    opt.UseJwkTokenValidation = true; // default to true
     opt.UseMemoryCacheTicketStore = false; // default to false
 }); 
 ```

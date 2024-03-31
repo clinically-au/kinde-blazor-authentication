@@ -17,12 +17,14 @@ public class KindeAuthenticationOptions()
     public string Authority { get; set; }
     public string ClientId { get; set; }
     public string ClientSecret { get; set; }
+    
+    public string JwtAudience { get; set; }
     public string ManagementApiClientId { get; set; }
     public string ManagementApiClientSecret { get; set; }
     public string SignedOutRedirectUri { get; set; }
 
     // For other clients using the API, e.g. mobile apps:
-    public bool UseJwkTokenValidation { get; set; } = true; 
+    public bool UseJwtBearerValidation { get; set; } = true; 
 
     // To avoid keeping any user details client-side; has some down-sides if you have many users
     // as it uses server memory
@@ -44,6 +46,7 @@ public static class KindeAuthenticationBuilder
         if (string.IsNullOrEmpty(configOptions.SignedOutRedirectUri)) configOptions.SignedOutRedirectUri = configuration["Kinde:SignedOutRedirectUri"];
         if (string.IsNullOrEmpty(configOptions.ManagementApiClientId)) configOptions.ManagementApiClientId = configuration["Kinde:ManagementApiClientId"];
         if (string.IsNullOrEmpty(configOptions.ManagementApiClientSecret)) configOptions.ManagementApiClientSecret = configuration["Kinde:ManagementApiClientSecret"];
+        if (string.IsNullOrEmpty(configOptions.JwtAudience)) configOptions.JwtAudience = configuration["Kinde:JwtAudience"];
 
         ArgumentException.ThrowIfNullOrEmpty(configOptions.Authority, "Kinde:Authority");
         ArgumentException.ThrowIfNullOrEmpty(configOptions.ClientId, "Kinde:ClientId");
@@ -51,6 +54,7 @@ public static class KindeAuthenticationBuilder
         ArgumentException.ThrowIfNullOrEmpty(configOptions.SignedOutRedirectUri, "Kinde:SignedOutRedirectUri");
         ArgumentException.ThrowIfNullOrEmpty(configOptions.ManagementApiClientId, "Kinde:ManagementApiClientId");
         ArgumentException.ThrowIfNullOrEmpty(configOptions.ManagementApiClientSecret, "Kinde:ManagementApiClientSecret");
+        if (configOptions.UseJwtBearerValidation) ArgumentException.ThrowIfNullOrEmpty(configOptions.JwtAudience, "Kinde:JwtAudience");
         
         services.AddHttpClient();
         services.AddHttpContextAccessor();
@@ -65,7 +69,7 @@ public static class KindeAuthenticationBuilder
             options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
             options.DefaultSignOutScheme = IdentityConstants.ExternalScheme;
         });
-        
+
         builder.AddOpenIdConnect("OpenIdConnect", options =>
         {
             var authority = configOptions.Authority;
@@ -77,50 +81,72 @@ public static class KindeAuthenticationBuilder
             options.MapInboundClaims = false;
             options.Scope.Add(OpenIdConnectScope.OpenIdProfile);
             options.Scope.Add(OpenIdConnectScope.Email);
-            options.Scope.Add("offline"); 
+            options.Scope.Add("offline");
             options.SaveTokens = true;
             options.GetClaimsFromUserInfoEndpoint = true;
 
-            if (configOptions.UseJwkTokenValidation)
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.TokenValidationParameters = new TokenValidationParameters
+                IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
                 {
+                    var client = new HttpClient();
+                    var response = client.GetAsync(new Uri($"{authority}/.well-known/jwks")).Result;
+                    var responseString = response.Content.ReadAsStringAsync().Result;
+                    return JwksHelper.LoadKeysFromJson(responseString);
+                },
+            };
+
+            options.Events = new OpenIdConnectEvents
+            {
+                OnTokenValidated = ctx =>
+                {
+                    var handler = new JwtSecurityTokenHandler();
+                    if (ctx.TokenEndpointResponse == null) return Task.CompletedTask;
+
+                    var jsonToken = handler.ReadJwtToken(ctx.TokenEndpointResponse.AccessToken);
+
+                    var newClaims = new List<Claim>();
+
+                    newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Permissions));
+                    newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Roles));
+                    newClaims.Add(new Claim(KindeClaimTypes.OrganizationCode,
+                        jsonToken.Claims.FirstOrDefault(x => x.Type == KindeClaimTypes.OrganizationCode)?.Value ??
+                        string.Empty));
+                    newClaims.Add(new Claim(ClaimTypes.Email,
+                        jsonToken.Claims.FirstOrDefault(x => x.Type == KindeClaimTypes.Email)?.Value ?? string.Empty));
+
+                    // also need to transform the role claims so the AuthorizeAttribute can find them
+                    newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Roles)
+                        .Select(role =>
+                            new Claim(ClaimTypes.Role, JsonSerializer.Deserialize<KindeRole>(role.Value).Name)));
+
+                    ctx.Principal!.AddIdentity(new ClaimsIdentity(newClaims));
+
+                    return Task.CompletedTask;
+                }
+            };
+        });
+
+        if (configOptions.UseJwtBearerValidation)
+        {
+            builder.AddJwtBearer(opt =>
+            {
+                opt.Authority = configOptions.Authority;
+                opt.Audience = configOptions.JwtAudience;
+                opt.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidIssuer = configOptions.Authority,
+                    ValidAudience = configOptions.JwtAudience,
                     IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
                     {
                         var client = new HttpClient();
-                        var response = client.GetAsync(new Uri($"{authority}/.well-known/jwks")).Result;
+                        var response = client.GetAsync(new Uri($"{configOptions.Authority}/.well-known/jwks")).Result;
                         var responseString = response.Content.ReadAsStringAsync().Result;
                         return JwksHelper.LoadKeysFromJson(responseString);
-                    },
-                };
-            }
-
-            options.Events = new OpenIdConnectEvents
-                {
-                    OnTokenValidated = ctx =>
-                    {
-                        var handler = new JwtSecurityTokenHandler();
-                        if (ctx.TokenEndpointResponse == null) return Task.CompletedTask;
-                        
-                        var jsonToken = handler.ReadJwtToken(ctx.TokenEndpointResponse.AccessToken);
-            
-                        var newClaims = new List<Claim>();
-
-                        newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Permissions));
-                        newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Roles));
-                        newClaims.Add(new Claim(KindeClaimTypes.OrganizationCode, jsonToken.Claims.FirstOrDefault(x => x.Type == KindeClaimTypes.OrganizationCode)?.Value ?? string.Empty));
-                        newClaims.Add(new Claim(ClaimTypes.Email, jsonToken.Claims.FirstOrDefault(x => x.Type == KindeClaimTypes.Email)?.Value ?? string.Empty));
-
-                        // also need to transform the role claims so the AuthorizeAttribute can find them
-                        newClaims.AddRange(jsonToken.Claims.Where(c => c.Type == KindeClaimTypes.Roles)
-                            .Select(role => new Claim(ClaimTypes.Role, JsonSerializer.Deserialize<KindeRole>(role.Value).Name)));
-                        
-                        ctx.Principal!.AddIdentity(new ClaimsIdentity(newClaims));
-
-                        return Task.CompletedTask;
                     }
                 };
-        });
+            });
+        }
         
         services.AddSingleton<CookieOidcRefresher>();
 

@@ -15,7 +15,7 @@ builder.Services.AddCascadingAuthenticationState();
 // Add the Kinde Authentication services that use ASP.NET Identity
 builder.Services.AddKindeAuthentication(builder.Configuration, opt =>
 {
-    opt.UseJwkTokenValidation = true;
+    opt.UseJwtBearerValidation = false;
     opt.UseMemoryCacheTicketStore = false;
 });
 
