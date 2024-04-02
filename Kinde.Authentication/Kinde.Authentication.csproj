@@ -10,7 +10,8 @@
         <Authors>WojtJ</Authors>
         <PackageProjectUrl>https://github.com/wojtj/BlazorAppWithKindeAuthentication</PackageProjectUrl>
         <AssemblyName>WojtJ.Kinde.IdentityAuthentication</AssemblyName>
-        <Version>1.0.11</Version>
+        <Version>1.0.12</Version>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,6 +23,12 @@
 
     <ItemGroup>
       <Folder Include="ManagementApi\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="README.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

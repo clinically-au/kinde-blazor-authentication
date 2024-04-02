@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,12 +13,31 @@ namespace KindeAuthentication;
 
 // This is a server-side AuthenticationStateProvider that revalidates the security stamp for the connected user
 // every 30 minutes an interactive circuit is connected.
-internal sealed class IdentityRevalidatingAuthenticationStateProvider(
-    ILoggerFactory loggerFactory,
-    IServiceScopeFactory scopeFactory,
-    IOptions<IdentityOptions> options)
-    : RevalidatingServerAuthenticationStateProvider(loggerFactory)
+internal sealed class IdentityRevalidatingAuthenticationStateProvider
+    : RevalidatingServerAuthenticationStateProvider
 {
+    private readonly IServiceScopeFactory scopeFactory;
+    private readonly PersistentComponentState state;
+    private readonly IdentityOptions options;
+    private readonly PersistingComponentStateSubscription subscription;
+
+    private Task<AuthenticationState>? authenticationStateTask;
+
+    public IdentityRevalidatingAuthenticationStateProvider(
+        ILoggerFactory loggerFactory,
+        IServiceScopeFactory serviceScopeFactory,
+        PersistentComponentState persistentComponentState,
+        IOptions<IdentityOptions> optionsAccessor)
+        : base(loggerFactory)
+    {
+        scopeFactory = serviceScopeFactory;
+        state = persistentComponentState;
+        options = optionsAccessor.Value;
+
+        AuthenticationStateChanged += OnAuthenticationStateChanged;
+        subscription = state.RegisterOnPersisting(OnPersistingAsync, RenderMode.InteractiveWebAssembly);
+    }
+
     protected override TimeSpan RevalidationInterval => TimeSpan.FromMinutes(30);
 
     protected override async Task<bool> ValidateAuthenticationStateAsync(
@@ -27,8 +49,7 @@ internal sealed class IdentityRevalidatingAuthenticationStateProvider(
         return await ValidateSecurityStampAsync(userManager, authenticationState.User);
     }
 
-    private async Task<bool> ValidateSecurityStampAsync(UserManager<KindeUser> userManager,
-        ClaimsPrincipal principal)
+    private async Task<bool> ValidateSecurityStampAsync(UserManager<KindeUser> userManager, ClaimsPrincipal principal)
     {
         var user = await userManager.GetUserAsync(principal);
         if (user is null)
@@ -41,10 +62,71 @@ internal sealed class IdentityRevalidatingAuthenticationStateProvider(
         }
         else
         {
-            var principalStamp = principal.FindFirstValue(options.Value.ClaimsIdentity.SecurityStampClaimType);
+            var principalStamp = principal.FindFirstValue(options.ClaimsIdentity.SecurityStampClaimType);
             var userStamp = await userManager.GetSecurityStampAsync(user);
             return principalStamp == userStamp;
         }
     }
+
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        authenticationStateTask = task;
+    }
+
+    private async Task OnPersistingAsync()
+    {
+        if (authenticationStateTask is null)
+        {
+            throw new UnreachableException($"Authentication state not set in {nameof(OnPersistingAsync)}().");
+        }
+
+        var authenticationState = await authenticationStateTask;
+        var principal = authenticationState.User;
+
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            var userId = principal.FindFirst(options.ClaimsIdentity.UserIdClaimType)?.Value;
+            var email = principal.FindFirst(options.ClaimsIdentity.EmailClaimType)?.Value;
+
+            if (userId != null && email != null)
+            {
+                state.PersistAsJson(nameof(KindeUserInfo), new KindeUserInfo()
+                {
+                    Id = userId,
+                    Email = email,
+                    DisplayName = principal.GetDisplayName(),
+                    ProfileUrl = principal.GetPicture(),
+                    Roles = principal.GetRoles(),
+                    Permissions = principal.GetPermissions(),
+                });
+            }
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        subscription.Dispose();
+        AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        base.Dispose(disposing);
+    }
+
+
+}
+
+public static class ClaimsPrincipalExtensions
+{
+    public static string? GetDisplayName(this ClaimsPrincipal? principal) =>
+        principal?.FindFirst(principal.Identities.FirstOrDefault()?.NameClaimType ?? ClaimTypes.Name)?.Value;
+
+    public static string[] GetRoles(this ClaimsPrincipal? principal) => principal?.Claims
+        .Where(x => x.Type == ClaimTypes.Role)
+        .Select(x => x.Value).ToArray() ?? Array.Empty<string>();
+
+    public static string[] GetPermissions(this ClaimsPrincipal? principal) => principal?.Claims
+        .Where(x => x.Type == KindeClaimTypes.Permissions)
+        .Select(x => x.Value).ToArray() ?? Array.Empty<string>();
+
+    public static string? GetPicture(this ClaimsPrincipal? principal) =>
+        principal?.FindFirst(x => x.Type == KindeClaimTypes.Picture)?.Value;
 }
 
