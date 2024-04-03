@@ -1,10 +1,11 @@
 ﻿@page "/user-info"
-@using KindeAuthentication
+@using Clinically.Kinde.Authentication.Blazor
+@using Clinically.Kinde.Authentication.Types
 @rendermode InteractiveServer
 @* @attribute [Authorize(Roles="MyKindeRoleName")] *@
 @* @attribute [Authorize(Policy=Permissions.MyPermissionName)]  *@
 @attribute [Authorize]
-@inject BlazorServerUserAccessor UserAccessor
+@inject BlazorUserAccessor UserAccessor
 
 <PageTitle>User Information</PageTitle>
 
@@ -13,7 +14,6 @@
 <p role="status">Shows information about the currently logged in user</p>
 
 <p>User Id: @User?.Id</p>
-<p>Username: @User?.UserName</p>
 <p>Email: @User?.Email</p>
 <p>First name: @User?.GivenName</p>
 <p>Last name: @User?.FamilyName</p>
@@ -21,10 +21,10 @@
 
 @code{
 
-    private KindeUser? User { get; set; } 
+    private KindeUserInfo? User { get; set; } 
 
     protected override async Task OnInitializedAsync()
     {
-        User = await UserAccessor.GetCurrentUserAsync();
+        User = await UserAccessor.GetCurrentUserInfoAsync();
     }
 }

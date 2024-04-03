@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorAppWithKindeAuthentication", "BlazorAppWithKindeAuthentication\BlazorAppWithKindeAuthentication.csproj", "{9C9B8E46-862C-4AD2-A899-58A33F45610E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kinde.Authentication", "Kinde.Authentication\Kinde.Authentication.csproj", "{B8B41398-4AC4-4DC5-B511-3F862500B9BD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,9 +12,5 @@ Global
 		{9C9B8E46-862C-4AD2-A899-58A33F45610E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C9B8E46-862C-4AD2-A899-58A33F45610E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C9B8E46-862C-4AD2-A899-58A33F45610E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B8B41398-4AC4-4DC5-B511-3F862500B9BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

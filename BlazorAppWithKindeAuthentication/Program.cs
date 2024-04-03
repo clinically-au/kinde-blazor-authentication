@@ -1,7 +1,8 @@
 using BlazorAppWithKindeAuthentication;
 using BlazorAppWithKindeAuthentication.Components;
 using BlazorAppWithKindeAuthentication.Components.Account;
-using KindeAuthentication;
+using Clinically.Kinde.Authentication;
+using Clinically.Kinde.Authentication.Identity;
 using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
