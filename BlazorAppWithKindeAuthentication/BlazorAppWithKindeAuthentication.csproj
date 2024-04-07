@@ -7,10 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Clinically.Kinde.Authentication\Clinically.Kinde.Authentication.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <PackageReference Include="Clinically.Kinde.Authentication" Version="1.0.3" />
       <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.3" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.3" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.3" />
@@ -18,7 +15,6 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Clinically.Kinde.Authentication" Version="*" />
     </ItemGroup>
 
     <ItemGroup>
@@ -35,6 +31,10 @@
       <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\SetPassword.razor" />
       <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\TwoFactorAuthentication.razor" />
       <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\_Imports.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\kinde-authentication\Clinically.Kinde.Authentication.csproj" />
     </ItemGroup>
 
 </Project>
