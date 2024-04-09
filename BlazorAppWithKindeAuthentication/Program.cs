@@ -1,9 +1,7 @@
 using BlazorAppWithKindeAuthentication;
 using BlazorAppWithKindeAuthentication.Components;
-using BlazorAppWithKindeAuthentication.Components.Account;
 using Clinically.Kinde.Authentication;
 using Clinically.Kinde.Authentication.Identity;
-using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +12,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 
 // Add the Kinde Authentication services that use ASP.NET Identity
-builder.Services.AddKindeAuthentication(builder.Configuration, opt =>
-{
-    opt.UseJwtBearerValidation = false;
-    opt.UseMemoryCacheTicketStore = false;
-});
+builder.Services.AddKindeIdentityAuthentication(builder.Configuration);
 
 builder.Services
     .AddAuthorizationBuilder()
