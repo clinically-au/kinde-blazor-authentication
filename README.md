@@ -1,43 +1,25 @@
-# Integrating Kinde Auth with .NET8 Blazor Apps
+# Integrating Kinde Auth with ASP.NET Core 8 Blazor Apps
 
-This example shows how to integrate Kinde with .NET applications, using my implementation that integrates Kinde with ASP.NET Identity. The library is still in development, but usable.
+This is an example of how to use ```Clinically.Kinde.Authentication``` to simplify integrating Kinde with Blazor apps.
 
-Add the following NuGet package:
-```Clinically.Kinde.Authentication```
-
-The source code for this library is at https://github.com/clinically-au/kinde-authentication
+See the [repo](https://github.com/clinically-au/kinde-authentication) for that library for more information on how to use it.
 
 The following needs to be in your ```appSettings.json``` on the server:
 
 ```json
-"Kinde": {
-  "Authority": "<From Kinde>",
-  "ClientId": "<From Kinde>",
-  "ClientSecret": "<From Kinde>",
-  "ManagementApiClientId": "<From Kinde>",
-  "ManagementApiClientSecret": "<From Kinde>",
-  "SignedOutRedirectUri": "https://localhost:5001/signout-callback-oidc",
-  "JwtAudience": "<From Kinde - Audience for API, if using JWT Bearer Auth in addition to Identity>",
-},
-"AppConfig": {
-  "BaseUrl": "https://localhost:5001"
-}
-```
-
-You then need the following in your server-side ```Program.cs```:
-
-```csharp 
-builder.Services.AddKindeAuthentication(opt =>
 {
-    opt.UseJwtBearerValidation = false; // default to false
-    opt.UseMemoryCacheTicketStore = false; // default to false
-}); 
-```
-
-For Blazor WASM, you also need to add this to ```Program.cs``` on the client:
-
-```csharp
-builder.Services.AddKindeWebAssemblyAuthentication();
+  "Kinde": {
+    "Authority": "<From Kinde>",
+    "ClientId": "<From Kinde>",
+    "ClientSecret": "<From Kinde>",
+    "ManagementApiClientId": "<From Kinde>",
+    "ManagementApiClientSecret": "<From Kinde>",
+    "SignedOutRedirectUri": "https://localhost:5001/signout-callback-oidc",
+  },
+  "AppConfig": {
+    "BaseUrl": "https://localhost:5001"
+  }
+}
 ```
 
 ## Roles
@@ -56,7 +38,7 @@ In order to add authorization policies for your Kinde permissions:
 builder.Services
     .AddAuthorizationBuilder()
     .AddKindePermissionPolicies<Permissions>();
-``` 
+```
 
 Then create a Permissions class that contains all the Kinde permissions you want to use:
 
@@ -82,10 +64,12 @@ Then you can use the permissions in your controllers or Razor pages:
   methods.
 - Inject ```BlazorUserAccessor``` to get access to the current user in your Blazor components.
 
-I've only just recently worked out how to tie all this together, so some bits may not be entirely required etc. Take
-this as a proof of concept at the moment :-)
+## Example Projects
 
-### To Do List:
+- [JWT Bearer Authentication with Web API and React Client](https://github.com/clinically-au/KindeJwtExample)
+- [Blazor App](https://github.com/clinically-au/BlazorAppWithKindeAuthentication)
+
+## To Do List:
 
 - Feature flags not currently implemented (but will work the same way as Permissions)
 - Support more claims/properties in the strongly typed user objects
